@@ -149,7 +149,17 @@ export class RoomManagerService {
     const activeId = room.status === 'lobby' ? room.creatorId : activePlayerId;
 
     // Filter out active player
-    const eligibleOpponents = room.players.filter((p) => p.id !== activeId);
+    let eligibleOpponents = room.players.filter((p) => p.id !== activeId);
+
+    // If more than 2 players, also filter out the previous active player (if exists)
+    // to prevent back-and-forth repetition.
+    if (room.players.length > 2 && room.previousActivePlayerId) {
+      const filtered = eligibleOpponents.filter((p) => p.id !== room.previousActivePlayerId);
+      if (filtered.length > 0) {
+        eligibleOpponents = filtered;
+      }
+    }
+
     const targetPlayer = eligibleOpponents[Math.floor(Math.random() * eligibleOpponents.length)];
 
     room.status = 'record_a';
@@ -164,6 +174,9 @@ export class RoomManagerService {
     if (!room) {
       throw new NotFoundException('Комната не найдена');
     }
+
+    // Save previous active player ID
+    room.previousActivePlayerId = room.activePlayerId;
 
     room.activePlayerId = nextActivePlayerId;
     

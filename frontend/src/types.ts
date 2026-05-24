@@ -12,4 +12,5 @@ export interface Room {
   activePlayerId?: string; // Player currently recording/taking turn
   targetPlayerId?: string; // Player selected to guess
   creatorId: string; // Creator of the room
+  previousActivePlayerId?: string; // Host of the previous turn
 }
