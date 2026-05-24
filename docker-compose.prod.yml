@@ -1,45 +1,48 @@
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile.prod
-    container_name: soundgame-backend-prod
-    networks:
-      - web
-    environment:
-      - PORT=3001
-      - NODE_ENV=production
-    restart: always
-    labels:
-      - "traefik.enable=true"
-      # Добавили /api на случай, если у NestJS будут обычные http запросы
-      - "traefik.http.routers.soundgame-backend.rule=Host(`game.edservicetx.com`) && (PathPrefix(`/socket.io`) || PathPrefix(`/api`))"
-      - "traefik.http.routers.soundgame-backend.entrypoints=websecure"
-      - "traefik.http.routers.soundgame-backend.tls=true"
-      - "traefik.http.routers.soundgame-backend.tls.certresolver=myresolver"
-      - "traefik.http.services.soundgame-backend.loadbalancer.server.port=3001"
-      # ВАЖНО: Указываем приоритет, чтобы Traefik проверял бэкенд ПЕРЕД фронтендом
-      - "traefik.http.routers.soundgame-backend.priority=100" 
+   backend:
+      build:
+         context: ./backend
+         dockerfile: Dockerfile.prod
+      container_name: soundgame-backend-prod
+      networks:
+         - web
+      environment:
+         - PORT=3001
+         - NODE_ENV=production
+      restart: always
+      labels:
+         - "traefik.enable=true"
+         # Добавили /api на случай, если у NestJS будут обычные http запросы
+         - "traefik.http.routers.soundgame-backend.rule=Host(`game.edservicetx.com`) && (PathPrefix(`/socket.io`) || PathPrefix(`/api`))"
+         - "traefik.http.routers.soundgame-backend.entrypoints=websecure"
+         - "traefik.http.routers.soundgame-backend.tls=true"
+         - "traefik.http.routers.soundgame-backend.tls.certresolver=myresolver"
+         - "traefik.http.services.soundgame-backend.loadbalancer.server.port=3001"
+         # ВАЖНО: Указываем приоритет, чтобы Traefik проверял бэкенд ПЕРЕД фронтендом
+         - "traefik.http.routers.soundgame-backend.priority=100"
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.prod
-      args:
-        # На фронте URL для сокетов теперь можно просто оставить пустым или "/", 
-        # так как всё на одном домене
-        - VITE_SOCKET_URL=/
-    container_name: soundgame-frontend-prod
-    networks:
-      - web
-    depends_on:
-      - backend
-    restart: always
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.soundgame-frontend.rule=Host(`game.edservicetx.com`)"
-      - "traefik.http.routers.soundgame-frontend.entrypoints=websecure"
-      - "traefik.http.routers.soundgame-frontend.tls=true"
-      - "traefik.http.routers.soundgame-frontend.tls.certresolver=myresolver"
-      - "traefik.http.services.soundgame-frontend.loadbalancer.server.port=80"
-      # У фронтенда приоритет ниже (по умолчанию он 0 или высчитывается по длине)
+   frontend:
+      build:
+         context: ./frontend
+         dockerfile: Dockerfile.prod
+         args:
+            # На фронте URL для сокетов теперь можно просто оставить пустым или "/",
+            # так как всё на одном домене
+            - VITE_SOCKET_URL=/
+      container_name: soundgame-frontend-prod
+      networks:
+         - web
+      depends_on:
+         - backend
+      restart: always
+      labels:
+         - "traefik.enable=true"
+         - "traefik.http.routers.soundgame-frontend.rule=Host(`game.edservicetx.com`)"
+         - "traefik.http.routers.soundgame-frontend.entrypoints=websecure"
+         - "traefik.http.routers.soundgame-frontend.tls=true"
+         - "traefik.http.routers.soundgame-frontend.tls.certresolver=myresolver"
+         - "traefik.http.services.soundgame-frontend.loadbalancer.server.port=80"
+         # У фронтенда приоритет ниже (по умолчанию он 0 или высчитывается по длине)
+networks:
+   web:
+      external: true
